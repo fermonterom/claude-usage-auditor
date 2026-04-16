@@ -1,0 +1,178 @@
+{
+  "version": "0.2.0",
+  "rules": [
+    {
+      "id": "retry_ratio",
+      "label": "Retries bajo control",
+      "metric": "retry_ratio",
+      "formula": "retries / tool_calls",
+      "unit": "ratio",
+      "thresholds": {"good": 0.10, "warn": 0.25, "critical": 0.40},
+      "direction": "lower_is_better",
+      "messages": {
+        "good": "Retries al {value_pct}% — tus prompts iniciales están bien enfocados.",
+        "warn": "Retry ratio {value_pct}%. Puede reducirse si empiezas con objetivo + archivos + restricción en el primer prompt.",
+        "critical": "{value_pct}% de retries — casi la mitad acaba en iteración. La tarea posiblemente está mal acotada antes de empezar."
+      },
+      "tip": "Plantilla: 'Objetivo: X. Archivos: A, B. Restricción: no tocar C. Preferencia: tests primero.'"
+    },
+    {
+      "id": "plan_mode_usage",
+      "label": "Uso de Plan Mode",
+      "metric": "plan_mode_uses",
+      "formula": "plan_mode_uses",
+      "unit": "count",
+      "thresholds": {"good": 5, "warn": 2, "critical": 0},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "{value} usos de Plan Mode esta semana. Estructuras bien las tareas largas.",
+        "warn": "Solo {value} Plan Modes. En tareas > 30 min suele ahorrar 2-3 turnos.",
+        "critical": "0 Plan Modes esta semana. Probar en la próxima tarea compleja."
+      },
+      "tip": "Empieza tareas > 30min con Plan Mode. Describe objetivo + constraints antes de ejecutar."
+    },
+    {
+      "id": "focus_session_duration",
+      "label": "Duración media de sesión",
+      "metric": "avg_session_min",
+      "formula": "duration_sec / sessions / 60",
+      "unit": "minutes",
+      "thresholds": {"good": 30, "warn": 15, "critical": 5},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "Sesiones de {value} min de media — tienes bloques de foco sostenidos.",
+        "warn": "Sesiones medias de {value} min. Bloquear 45-60 min sin interrupciones mejora calidad.",
+        "critical": "Sesiones muy cortas ({value} min). Indica interrupciones frecuentes o tareas muy fragmentadas."
+      },
+      "tip": "Bloquea calendario + silencia notificaciones 45 min al empezar una tarea."
+    },
+    {
+      "id": "active_days",
+      "label": "Consistencia semanal",
+      "metric": "days_active",
+      "formula": "days_count",
+      "unit": "count",
+      "thresholds": {"good": 4, "warn": 2, "critical": 1},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "{value} días activos — ritmo consistente.",
+        "warn": "Solo {value} días activos. Los proyectos avanzan mejor con ritmo más regular.",
+        "critical": "{value} día activo esta semana. Si el proyecto es importante, retomar ritmo."
+      },
+      "tip": "30-45 min diarios > 4 horas en un día."
+    },
+    {
+      "id": "error_rate",
+      "label": "Ratio de errores en tool calls",
+      "metric": "error_rate",
+      "formula": "tool_errors / tool_calls",
+      "unit": "ratio",
+      "thresholds": {"good": 0.05, "warn": 0.10, "critical": 0.20},
+      "direction": "lower_is_better",
+      "messages": {
+        "good": "{value_pct}% de errores. Sin problemas.",
+        "warn": "{value_pct}% errores. Revisar si hay comandos recurrentes que fallan.",
+        "critical": "{value_pct}% errores — 1 de cada 5 tool calls falla. Algo en el entorno o los permisos va mal."
+      },
+      "tip": "/productivity-report te muestra la lista de errores por sesión."
+    },
+    {
+      "id": "focus_ratio",
+      "label": "Ratio de foco",
+      "metric": "focus_ratio",
+      "formula": "(sessions>0 ? avg_session_sec / 3600 : 0)",
+      "unit": "ratio",
+      "thresholds": {"good": 0.80, "warn": 0.55, "critical": 0.35},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "Tiempo efectivo {value_pct}% del tiempo en CLI.",
+        "warn": "Ratio de foco {value_pct}%. Hay gaps entre comandos — posibles interrupciones.",
+        "critical": "Ratio de foco bajo ({value_pct}%). La sesión se alarga sin actividad real entre turnos."
+      },
+      "tip": "Pomodoro 25/5 o 45/15 ayuda a subir ratio."
+    },
+    {
+      "id": "task_variety",
+      "label": "Variedad de herramientas usadas",
+      "metric": "tools_distinct",
+      "formula": "Object.keys(tools).length",
+      "unit": "count",
+      "thresholds": {"good": 5, "warn": 3, "critical": 2},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "Usas {value} herramientas distintas. Explotas bien el toolset.",
+        "warn": "Solo {value} herramientas. Prueba Grep/Glob/Agent para tareas de exploración.",
+        "critical": "Solo {value} herramientas — posiblemente desperdicias capacidades del toolset."
+      },
+      "tip": "Agent + Grep + Glob son clave para refactors y exploración."
+    },
+    {
+      "id": "project_focus",
+      "label": "Concentración en un proyecto",
+      "metric": "project_concentration",
+      "formula": "maxCwdRatio",
+      "unit": "ratio",
+      "thresholds": {"good": 0.70, "warn": 0.45, "critical": 0.25},
+      "direction": "higher_is_better",
+      "messages": {
+        "good": "{value_pct}% del tiempo en el proyecto principal. Buen foco.",
+        "warn": "{value_pct}% en el proyecto principal. Saltas bastante entre proyectos.",
+        "critical": "Solo {value_pct}% en el proyecto principal — context switches constantes."
+      },
+      "tip": "Un día / un proyecto si puedes. Context switch cuesta 15-20 min por salto."
+    },
+    {
+      "id": "output_efficiency",
+      "label": "Tamaño medio de output",
+      "metric": "avg_output_kb",
+      "formula": "output_bytes / tool_calls / 1024",
+      "unit": "kb",
+      "thresholds": {"good": 5, "warn": 15, "critical": 40},
+      "direction": "lower_is_better",
+      "messages": {
+        "good": "Outputs medios de {value}KB — respuestas concisas.",
+        "warn": "Outputs medios {value}KB. Pides a Claude más de lo que necesitas.",
+        "critical": "Outputs muy grandes ({value}KB). Contexto inflado, responses más lentas y caras."
+      },
+      "tip": "Pide 'solo el fragmento relevante'. No abrir archivos enteros si solo necesitas una función."
+    },
+    {
+      "id": "input_conciseness",
+      "label": "Concisión del prompt",
+      "metric": "avg_input_kb",
+      "formula": "input_bytes / tool_calls / 1024",
+      "unit": "kb",
+      "thresholds": {"good": 1, "warn": 5, "critical": 15},
+      "direction": "lower_is_better",
+      "messages": {
+        "good": "Prompts concisos ({value}KB de media).",
+        "warn": "Prompts medios {value}KB. Algunos pueden ser más específicos.",
+        "critical": "Prompts muy cargados ({value}KB) — probablemente copias bloques innecesarios."
+      },
+      "tip": "Referencia archivos por path; no pegues el contenido completo a menos que haga falta."
+    }
+  ],
+  "history": [
+    {
+      "id": "history_trend_tool_calls",
+      "label": "Tendencia vs tu mediana personal",
+      "metric": "tool_calls_delta_vs_p50",
+      "direction": "contextual",
+      "messages": {
+        "up_significant": "Tool calls +{delta_pct}% vs tu mediana de 4 semanas. Semana intensa.",
+        "down_significant": "Tool calls {delta_pct}% vs tu mediana de 4 semanas. Semana más ligera.",
+        "stable": "Volumen consistente con tu ritmo habitual."
+      }
+    },
+    {
+      "id": "history_trend_retries",
+      "label": "Evolución del retry ratio",
+      "metric": "retry_ratio_delta_vs_p50",
+      "direction": "lower_is_better",
+      "messages": {
+        "improved": "Retries bajaron del {before_pct}% al {after_pct}% vs mediana personal.",
+        "worsened": "Retries subieron del {before_pct}% al {after_pct}% vs mediana personal."
+      }
+    }
+  ]
+}

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>__TITLE__ · NextGen AI Institute Productivity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #1E2530; --bg-2: #171C26; --card: #2A3342; --border: #354050; --border-br: #475264;
+    --text: #E8E4DD; --text-dim: #A0AAB8; --text-faint: #6B7280;
+    --accent: #0891B2; --accent-br: #22D3EE; --accent-lt: #67E8F9;
+    --red: #fb7185; --amber: #f59e0b; --green: #6ee7b7; --violet: #c4b5fd;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Outfit', -apple-system, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at top right, rgba(8,145,178,0.06) 0%, transparent 55%);
+    color: var(--text); line-height: 1.5; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: 'Playfair Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+  .container { max-width: 1280px; margin: 0 auto; padding: 40px 28px 72px; }
+
+  header.hero { display: grid; grid-template-columns: auto 1fr auto; align-items: flex-end; gap: 28px; padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .hero-title { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-faint); margin-bottom: 8px; }
+  .hero-display { font-size: 44px; line-height: 1; letter-spacing: -0.03em; }
+  .hero-display em { font-style: italic; color: var(--accent); font-weight: 500; }
+  .hero-sub { font-size: 14px; color: var(--text-dim); max-width: 520px; margin-top: 12px; font-weight: 300; }
+  .hero-meta { text-align: right; font-size: 12px; color: var(--text-faint); display: flex; flex-direction: column; gap: 4px; letter-spacing: 0.03em; }
+  .hero-meta strong { color: var(--text-dim); font-weight: 500; font-size: 13px; }
+  .status-dot { width: 6px; height: 6px; background: var(--accent-br); border-radius: 50%; display: inline-block; box-shadow: 0 0 10px var(--accent-br); margin-right: 6px; }
+
+  .section-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-faint); font-weight: 500; margin: 36px 0 12px; display: flex; align-items: center; gap: 12px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .section-title.serif { font-size: 28px; margin-bottom: 4px; }
+  .section-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 20px; font-weight: 300; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .card-head { margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .card-head h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; color: var(--text); }
+  .card-head p { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; transition: transform 0.2s, border 0.2s; }
+  .kpi:hover { transform: translateY(-2px); border-color: var(--border-br); }
+  .kpi-label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--text-faint); font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .kpi-icon { width: 8px; height: 8px; border-radius: 50%; }
+  .kpi-value { font-family: 'Playfair Display', serif; font-size: 40px; line-height: 1; letter-spacing: -0.03em; color: var(--text); }
+  .kpi-sub { font-size: 11px; color: var(--text-dim); margin-top: 8px; }
+
+  .grid { display: grid; gap: 18px; margin-bottom: 16px; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3-1 { grid-template-columns: 2fr 1fr; }
+  canvas { max-width: 100%; }
+
+  /* Tabla de sesiones */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-weight: 500; color: var(--text-faint); text-transform: uppercase; font-size: 10px; letter-spacing: 2px; padding: 10px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 12px 8px; border-bottom: 1px solid rgba(53,64,80,0.4); font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(53,64,80,0.25); }
+  td.num { text-align: right; color: var(--text-dim); }
+  td.mono { font-family: monospace; font-size: 12px; color: var(--text-dim); }
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge.ok { background: rgba(110,231,183,0.15); color: var(--green); }
+  .badge.warn { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+  /* Barras horizontales simples */
+  .bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 140px 1fr 60px; gap: 12px; align-items: center; }
+  .bar-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; }
+  .bar-track { height: 8px; background: var(--bg-2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-br)); }
+  .bar-val { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--text); text-align: right; }
+
+  /* Insights */
+  .insights-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .insight { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; border-left: 3px solid var(--text-faint); display: flex; flex-direction: column; gap: 8px; }
+  .insight.state-good { border-left-color: var(--green); }
+  .insight.state-warn { border-left-color: var(--amber); }
+  .insight.state-critical { border-left-color: var(--red); }
+  .insight.state-up, .insight.state-down { border-left-color: var(--accent-br); }
+  .insight.layer-llm { border-left-color: var(--violet); background: linear-gradient(180deg, var(--card) 0%, rgba(196,181,253,0.04) 100%); }
+  .insight-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .insight-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-faint); font-weight: 500; }
+  .insight-value { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--text); letter-spacing: -0.02em; }
+  .insight-msg { font-size: 13px; color: var(--text); line-height: 1.55; }
+  .insight-tip { font-size: 12px; color: var(--text-dim); padding-top: 8px; border-top: 1px solid rgba(53,64,80,0.5); font-style: italic; }
+  .insight-layer-tag { display: inline-block; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-faint); padding: 2px 6px; border: 1px solid var(--border); border-radius: 3px; }
+  .goals-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); background: rgba(8,145,178,0.08); border: 1px solid rgba(8,145,178,0.3); padding: 4px 10px; border-radius: 999px; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .goals-pill strong { color: var(--accent-br); text-transform: uppercase; letter-spacing: 1.5px; font-size: 10px; font-weight: 500; }
+
+  /* Empty state */
+  .empty-box { background: var(--card); border: 1px dashed var(--border-br); border-radius: 16px; padding: 40px; text-align: center; }
+  .empty-box h3 { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--text-dim); margin-bottom: 10px; }
+  .empty-box p { color: var(--text-faint); font-size: 13px; max-width: 540px; margin: 0 auto; }
+
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 12px; color: var(--text-faint); flex-wrap: wrap; gap: 10px; }
+  footer code { background: var(--card); padding: 2px 8px; border-radius: 4px; color: var(--accent-br); font-size: 11px; }
+
+  @media (max-width: 1024px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .g2, .g3-1, .insights-grid { grid-template-columns: 1fr; }
+    .hero-display { font-size: 32px; }
+    header.hero { grid-template-columns: 1fr; }
+    .hero-meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<script type="application/json" id="report-data">__DATA_JSON__</script>
+<script type="application/json" id="insights-data">__INSIGHTS_JSON__</script>
+
+<div class="container">
+
+  <header class="hero">
+    <div>
+      <svg viewBox="0 0 80 80" width="52" height="52" role="img" aria-label="NextGen AI Institute">
+        <polyline points="16,52 40,24 64,52" stroke="#0891B2" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <line x1="16" y1="66" x2="64" y2="66" stroke="#0891B2" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="hero-title">NextGen AI Institute Productivity · Informe local</div>
+      <h1 class="serif hero-display">Tu uso de <em>Claude Code.</em></h1>
+      <p class="hero-sub">Datos objetivos extraídos de tus sesiones reales. Todo en local, solo metadata. Sin juicios, sin coaching.</p>
+    </div>
+    <div class="hero-meta">
+      <div><span class="status-dot"></span>__PERIOD_LABEL__</div>
+      <div><strong>__MODE_LABEL__</strong></div>
+      <div>Generado __GENERATED_AT__</div>
+      <div>NextGen AI Institute · v0.1</div>
+    </div>
+  </header>
+
+  <div id="root"></div>
+
+  <footer>
+    <div>NextGen AI Institute Productivity v0.1 · 100% local · nunca se envía nada fuera</div>
+    <div>Regenera con <code>/productivity-report</code></div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const raw = document.getElementById('report-data').textContent;
+  let D;
+  try { D = JSON.parse(raw); } catch(e) { D = null; }
+  let I = null;
+  try {
+    const iraw = document.getElementById('insights-data');
+    // check for leading '{' instead of comparing against the sentinel
+    // (render.js substitutes the sentinel everywhere, including inside JS literals)
+    if (iraw && iraw.textContent && iraw.textContent.trim().charAt(0) === '{') {
+      I = JSON.parse(iraw.textContent);
+    }
+  } catch(e) { I = null; }
+  const root = document.getElementById('root');
+  if (!D) { root.innerHTML = '<div class="empty-box"><h3>Error</h3><p>No se pudieron leer los datos.</p></div>'; return; }
+
+  const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const fmt = n => (n == null ? '—' : Number(n).toLocaleString('es-ES', {maximumFractionDigits: 1}));
+  const durStr = sec => {
+    if (!sec || sec < 60) return sec + 's';
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+  };
+  const shortenCwd = p => {
+    if (!p) return '—';
+    const parts = p.split(/[\/\\]/).filter(Boolean);
+    return parts.slice(-2).join('/');
+  };
+  const shortenSession = id => id ? id.slice(0, 8) : '—';
+
+  // ======== Empty state ========
+  if (D.raw_event_count === 0) {
+    root.innerHTML = `
+      <div class="empty-box">
+        <h3>Sin eventos en este periodo</h3>
+        <p>No se encontraron datos para <strong>${D.period}</strong>. Asegúrate de que los hooks están instalados con <code>/productivity-install</code> y vuelve después de trabajar alguna sesión de Claude Code.</p>
+      </div>`;
+    return;
+  }
+
+  // ======== Agregado del periodo ========
+  const weekOrDay = (D.mode === 'week') ? (D.weeks[0] || null) : (D.days[0] || null);
+  const totalTools = weekOrDay ? weekOrDay.tool_calls : 0;
+  const totalSessions = weekOrDay ? weekOrDay.sessions : 0;
+  const totalDuration = weekOrDay ? weekOrDay.duration_sec : 0;
+  const totalRetries = weekOrDay ? weekOrDay.retries : 0;
+  const totalErrors = weekOrDay ? weekOrDay.tool_errors : 0;
+  const daysCount = D.days.length;
+  const errorRate = totalTools > 0 ? (totalErrors / totalTools * 100) : 0;
+  const retryRate = totalTools > 0 ? (totalRetries / totalTools * 100) : 0;
+
+  let html = '';
+
+  // KPIs globales
+  const kpis = [
+    {label: 'Tiempo total', v: durStr(totalDuration), sub: `${totalSessions} sesión${totalSessions!==1?'es':''} · ${daysCount} día${daysCount!==1?'s':''}`, c: 'var(--accent)'},
+    {label: 'Tool calls', v: fmt(totalTools), sub: `${totalErrors} errores · ${errorRate.toFixed(1)}%`, c: 'var(--accent-br)'},
+    {label: 'Retries', v: fmt(totalRetries), sub: `${retryRate.toFixed(1)}% del total`, c: 'var(--accent-lt)'},
+    {label: 'Proyectos', v: weekOrDay ? Object.keys(weekOrDay.cwds).length : 0, sub: 'carpetas distintas', c: 'var(--green)'}
+  ];
+  html += `<section class="kpi-grid">${kpis.map(k=>`
+    <div class="kpi">
+      <div class="kpi-label"><span class="kpi-icon" style="background:${k.c}"></span>${k.label}</div>
+      <div class="kpi-value">${k.v}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('')}</section>`;
+
+  // Actividad por día (solo si week)
+  if (D.mode === 'week' && D.days.length > 0) {
+    html += `<div class="section-label">Actividad por día</div>
+      <h2 class="serif section-title">Cómo se distribuyó tu tiempo esta semana.</h2>
+      <p class="section-sub">Tool calls y duración activa por día (lunes a domingo).</p>
+      <div class="grid"><div class="card"><canvas id="dailyChart" height="100"></canvas></div></div>`;
+  }
+
+  // Uso de tools
+  if (weekOrDay && Object.keys(weekOrDay.tools).length > 0) {
+    const tools = Object.entries(weekOrDay.tools).sort((a,b)=>b[1]-a[1]);
+    const maxT = tools[0][1];
+    html += `<div class="section-label">Uso de herramientas</div>
+      <h2 class="serif section-title">Qué herramientas de Claude usas.</h2>
+      <p class="section-sub">Ranking de tool calls por tipo.</p>
+      <div class="grid"><div class="card"><div class="bar-list">
+        ${tools.slice(0, 12).map(([t,n])=>`
+          <div class="bar-row">
+            <div class="bar-label">${esc(t)}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(n/maxT*100).toFixed(0)}%"></div></div>
+            <div class="bar-val">${n}</div>
+          </div>`).join('')}
+      </div></div></div>`;
+  }
+
+  // Proyectos tocados
+  if (weekOrDay && Object.keys(weekOrDay.cwds).length > 0) {
+    const cwds = Object.entries(weekOrDay.cwds).sort((a,b)=>b[1]-a[1]).slice(0, 8);
+    const maxC = cwds[0][1];
+    html += `<div class="section-label">Proyectos</div>
+      <h2 class="serif section-title">Dónde trabajaste.</h2>
+      <p class="section-sub">Carpetas en las que se ejecutaron tool calls. Ordenadas por actividad.</p>
+      <div class="grid"><div class="card"><div class="bar-list">
+        ${cwds.map(([c,n])=>`
+          <div class="bar-row">
+            <div class="bar-label" title="${esc(c)}">${esc(shortenCwd(c))}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${(n/maxC*100).toFixed(0)}%"></div></div>
+            <div class="bar-val">${n}</div>
+          </div>`).join('')}
+      </div></div></div>`;
+  }
+
+  // ======== Insights ========
+  if (I && I.cards && I.cards.length > 0) {
+    const stateWeight = { critical: 0, warn: 1, down: 1, up: 2, good: 3, stable: 3 };
+    const sorted = I.cards.slice().sort((a,b) => (stateWeight[a.state] ?? 4) - (stateWeight[b.state] ?? 4));
+    const goalsPill = (I.goals && I.goals.objective)
+      ? `<div class="goals-pill"><strong>Objetivo</strong> ${esc(I.goals.objective)}${Array.isArray(I.goals.track) ? ` · ${I.goals.track.length} áreas seguidas` : ''}</div>`
+      : `<div class="goals-pill"><strong>Sin goals.yaml</strong> · /productivity-goals para alinear</div>`;
+
+    html += `<div class="section-label">Insights de uso</div>
+      <h2 class="serif section-title">Qué mirar esta semana.</h2>
+      <p class="section-sub">Reglas deterministas aplicadas a tus métricas + comparación con tu mediana personal.${I.history_weeks ? ` Historia: ${I.history_weeks} sem.` : ''}</p>
+      ${goalsPill}
+      <div class="insights-grid">
+        ${sorted.map(c => {
+          const layerTag = c.layer === 'llm' ? '<span class="insight-layer-tag">LLM</span>'
+            : c.layer === 'history' ? '<span class="insight-layer-tag">Historia</span>'
+            : '';
+          return `<div class="insight state-${c.state} layer-${c.layer || 'catalog'}">
+            <div class="insight-head">
+              <div>
+                <div class="insight-label">${c.label || c.id} ${layerTag}</div>
+              </div>
+              ${c.value_display ? `<div class="insight-value">${c.value_display}</div>` : ''}
+            </div>
+            <div class="insight-msg">${c.message || ''}</div>
+            ${c.tip ? `<div class="insight-tip">${c.tip}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // Detalle por sesión
+  if (D.sessions.length > 0) {
+    html += `<div class="section-label">Detalle por sesión</div>
+      <h2 class="serif section-title">Cada sesión de trabajo.</h2>
+      <p class="section-sub">Sesión = intervalo entre tu primera y última interacción con Claude, agrupado por session_id.</p>
+      <div class="card"><div class="table-wrap"><table>
+        <thead><tr>
+          <th>Sesión</th>
+          <th>Fecha</th>
+          <th>Inicio</th>
+          <th style="text-align:right">Duración</th>
+          <th style="text-align:right">Tools</th>
+          <th style="text-align:right">Retries</th>
+          <th style="text-align:right">Errores</th>
+          <th style="text-align:right">Proyecto</th>
+        </tr></thead>
+        <tbody>${D.sessions.slice().reverse().slice(0, 50).map(s => {
+          const main = Object.entries(s.cwds).sort((a,b)=>b[1]-a[1])[0];
+          const proj = main ? shortenCwd(main[0]) : '—';
+          const hasRetry = s.retries > 0;
+          const time = s.start_ts ? s.start_ts.slice(11, 16) : '—';
+          return `<tr>
+            <td class="mono">${esc(shortenSession(s.session_id))}</td>
+            <td class="mono">${esc(s.date || '—')}</td>
+            <td class="mono">${esc(time)}</td>
+            <td class="num">${durStr(s.duration_sec)}</td>
+            <td class="num">${s.tool_calls}</td>
+            <td class="num">${hasRetry ? `<span class="badge warn">${s.retries}</span>` : s.retries}</td>
+            <td class="num">${s.tool_errors}</td>
+            <td class="num">${esc(proj)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`;
+  }
+
+  root.innerHTML = html;
+
+  // Chart: actividad diaria (sólo en modo week)
+  if (D.mode === 'week' && D.days.length > 0) {
+    Chart.defaults.color = '#A0AAB8';
+    Chart.defaults.font.family = 'Outfit';
+    const labels = D.days.map(d => d.date.slice(5));
+    const calls = D.days.map(d => d.tool_calls);
+    const dur = D.days.map(d => Math.round(d.duration_sec / 60));
+    new Chart(document.getElementById('dailyChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {label: 'Tool calls', data: calls, backgroundColor: '#0891B2', borderRadius: 5, yAxisID: 'y'},
+          {label: 'Minutos activos', data: dur, backgroundColor: '#67E8F9', borderRadius: 5, yAxisID: 'y1'}
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {legend: {position: 'top', labels: {color: '#A0AAB8'}}},
+        scales: {
+          y: {beginAtZero: true, position: 'left', grid: {color: 'rgba(53,64,80,0.4)'}, title: {display: true, text: 'Tool calls', color: '#A0AAB8'}},
+          y1: {beginAtZero: true, position: 'right', grid: {display: false}, title: {display: true, text: 'Min', color: '#A0AAB8'}},
+          x: {grid: {display: false}}
+        }
+      }
+    });
+  }
+})();
+</script>
+</body>
+</html>

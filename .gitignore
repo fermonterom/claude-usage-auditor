@@ -1,0 +1,20 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Test artifacts
+test/results.json
+test/security-report.html
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# User data (el plugin escribe aqui en runtime, nunca en el repo)
+.nextgenai-productivity/
