@@ -34,12 +34,20 @@ function readStdin() {
 
 function shouldSkip(cwd) {
   if (!cwd) return true;
-  const normalized = path.resolve(cwd);
+  // En Windows el filesystem es case-insensitive. Comparamos tras
+  // path.resolve() + lowercase para evitar falsos negativos con
+  // C:\Users\foo vs c:\users\foo.
+  const isWin = process.platform === 'win32';
+  const norm = p => {
+    const r = path.resolve(p);
+    return isWin ? r.toLowerCase() : r;
+  };
+  const normalized = norm(cwd);
   const home = os.homedir();
   const skipPaths = [home, '/tmp', '/', 'C:\\', os.tmpdir()];
-  if (skipPaths.some(p => path.resolve(p) === normalized)) return true;
-  // si está en la raíz del user home (no subdir), skip
-  if (path.dirname(normalized) === home && path.basename(normalized).startsWith('.')) return true;
+  if (skipPaths.some(p => norm(p) === normalized)) return true;
+  // si está inmediatamente bajo el home y empieza por punto (dotfile), skip
+  if (path.dirname(normalized) === norm(home) && path.basename(normalized).startsWith('.')) return true;
   return false;
 }
 

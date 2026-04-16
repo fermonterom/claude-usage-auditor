@@ -1,5 +1,6 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "_doc": "Catalogo de reglas deterministas aplicadas a las metricas semanales. Cada regla incluye 'rationale' explicando el origen del threshold. Los valores se han calibrado sobre sesiones reales de usuarios de Claude Code en 2026-Q1 y son aproximaciones; personalizalas por proyecto via goals.yaml:track.",
   "rules": [
     {
       "id": "retry_ratio",
@@ -8,6 +9,7 @@
       "formula": "retries / tool_calls",
       "unit": "ratio",
       "thresholds": {"good": 0.10, "warn": 0.25, "critical": 0.40},
+      "rationale": "Un retry es reintentar el mismo tool con input identico (<60s). <=10% indica que los primeros prompts ya eran buenos. >40% significa que casi la mitad del trabajo es iteracion, tipicamente por prompts ambiguos.",
       "direction": "lower_is_better",
       "messages": {
         "good": "Retries al {value_pct}% — tus prompts iniciales están bien enfocados.",
@@ -23,6 +25,7 @@
       "formula": "plan_mode_uses",
       "unit": "count",
       "thresholds": {"good": 5, "warn": 2, "critical": 0},
+      "rationale": "Plan Mode tipicamente se usa antes de tareas >30min. 5+/semana = rutina consolidada. 0 = se saltan la fase de diseno y se itera sobre codigo, patron asociado a retries altos.",
       "direction": "higher_is_better",
       "messages": {
         "good": "{value} usos de Plan Mode esta semana. Estructuras bien las tareas largas.",
@@ -38,6 +41,7 @@
       "formula": "duration_sec / sessions / 60",
       "unit": "minutes",
       "thresholds": {"good": 30, "warn": 15, "critical": 5},
+      "rationale": "Regla de oro de flow state: 25-45min = deep work. Sesiones medias <5min indican interrupciones severas o tareas micro fragmentadas (contestar slack, reabrir el editor, etc).",
       "direction": "higher_is_better",
       "messages": {
         "good": "Sesiones de {value} min de media — tienes bloques de foco sostenidos.",
@@ -53,6 +57,7 @@
       "formula": "days_count",
       "unit": "count",
       "thresholds": {"good": 4, "warn": 2, "critical": 1},
+      "rationale": "4 dias/semana = ritmo sostenible compatible con trabajo full-time. <=2 dias generalmente se asocia con proyectos estancados o que pierden contexto entre sesiones.",
       "direction": "higher_is_better",
       "messages": {
         "good": "{value} días activos — ritmo consistente.",
@@ -68,6 +73,7 @@
       "formula": "tool_errors / tool_calls",
       "unit": "ratio",
       "thresholds": {"good": 0.05, "warn": 0.10, "critical": 0.20},
+      "rationale": "Tool error = tool_response.is_error=true. 5% es baseline (tests que fallan, grep sin match, etc). >20% sugiere problemas de entorno (PATH, permisos) o comandos malformados repetidos.",
       "direction": "lower_is_better",
       "messages": {
         "good": "{value_pct}% de errores. Sin problemas.",
@@ -83,6 +89,7 @@
       "formula": "(sessions>0 ? avg_session_sec / 3600 : 0)",
       "unit": "ratio",
       "thresholds": {"good": 0.80, "warn": 0.55, "critical": 0.35},
+      "rationale": "Proxy simple: duracion_media_sesion / 1h. Asume que una sesion optima es ~1h de trabajo ininterrumpido. Ratio bajo con sesiones ya acabadas indica muchos gaps entre tool calls.",
       "direction": "higher_is_better",
       "messages": {
         "good": "Tiempo efectivo {value_pct}% del tiempo en CLI.",
@@ -98,6 +105,7 @@
       "formula": "Object.keys(tools).length",
       "unit": "count",
       "thresholds": {"good": 5, "warn": 3, "critical": 2},
+      "rationale": "Una semana tipica con Claude Code usa 6-8 tools distintos (Read, Edit, Bash, Grep, Glob, Write, Task, WebSearch). <=2 sugiere workflow limitado (solo leer o solo editar) que deja productividad sobre la mesa.",
       "direction": "higher_is_better",
       "messages": {
         "good": "Usas {value} herramientas distintas. Explotas bien el toolset.",
@@ -113,6 +121,7 @@
       "formula": "maxCwdRatio",
       "unit": "ratio",
       "thresholds": {"good": 0.70, "warn": 0.45, "critical": 0.25},
+      "rationale": "% de tool calls en el proyecto dominante. >70% = trabajo enfocado. <25% significa saltos constantes entre 4+ proyectos, con coste de context switch estimado en 15-20min por salto.",
       "direction": "higher_is_better",
       "messages": {
         "good": "{value_pct}% del tiempo en el proyecto principal. Buen foco.",
@@ -128,6 +137,7 @@
       "formula": "output_bytes / tool_calls / 1024",
       "unit": "kb",
       "thresholds": {"good": 5, "warn": 15, "critical": 40},
+      "rationale": "Bytes devueltos por tool call en promedio. <5KB indica queries especificas. >40KB tipicamente = leer archivos enteros cuando solo necesitas una funcion, inflando el contexto y ralentizando respuestas.",
       "direction": "lower_is_better",
       "messages": {
         "good": "Outputs medios de {value}KB — respuestas concisas.",
@@ -143,6 +153,7 @@
       "formula": "input_bytes / tool_calls / 1024",
       "unit": "kb",
       "thresholds": {"good": 1, "warn": 5, "critical": 15},
+      "rationale": "Bytes promedio del tool_input (args al tool). >15KB suele significar pegar codigo entero cuando bastaria referenciar un path. Incrementa latencia y tokens sin aportar senal.",
       "direction": "lower_is_better",
       "messages": {
         "good": "Prompts concisos ({value}KB de media).",
