@@ -75,6 +75,6 @@ suite('[unit] status', () => {
     ensureDataDir(tmp);
     const r = run(tmp);
     assertEq(r.status, 0);
-    assertMatch(r.stdout, /Version: 0\.3\.0/);
+    assertMatch(r.stdout, /Version: 0\.4\.0/);
   });
 });
