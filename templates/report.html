@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>__TITLE__ · NextGen AI Institute Productivity</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
 <style>
   :root {
     --bg: #1E2530; --bg-2: #171C26; --card: #2A3342; --border: #354050; --border-br: #475264;
@@ -17,12 +14,12 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Outfit', -apple-system, sans-serif;
+    font-family: 'Segoe UI', -apple-system, sans-serif;
     background: var(--bg);
     background-image: radial-gradient(ellipse at top right, rgba(8,145,178,0.06) 0%, transparent 55%);
     color: var(--text); line-height: 1.5; min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased;
   }
-  .serif { font-family: 'Playfair Display', Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
+  .serif { font-family: Georgia, serif; font-weight: 400; letter-spacing: -0.01em; }
   .container { max-width: 1280px; margin: 0 auto; padding: 40px 28px 72px; }
 
   header.hero { display: grid; grid-template-columns: auto 1fr auto; align-items: flex-end; gap: 28px; padding-bottom: 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
@@ -135,14 +132,14 @@
       <div><span class="status-dot"></span>__PERIOD_LABEL__</div>
       <div><strong>__MODE_LABEL__</strong></div>
       <div>Generado __GENERATED_AT__</div>
-      <div>NextGen AI Institute · v0.1</div>
+      <div>NextGen AI Institute · v__VERSION__</div>
     </div>
   </header>
 
   <div id="root"></div>
 
   <footer>
-    <div>NextGen AI Institute Productivity v0.1 · 100% local · nunca se envía nada fuera</div>
+    <div>NextGen AI Institute Productivity v__VERSION__ · 100% local · nunca se envía nada fuera</div>
     <div>Regenera con <code>/productivity-report</code></div>
   </footer>
 
@@ -192,6 +189,14 @@
 
   // ======== Agregado del periodo ========
   const weekOrDay = (D.mode === 'week') ? (D.weeks[0] || null) : (D.days[0] || null);
+  if (!weekOrDay) {
+    root.innerHTML = `
+      <div class="empty-box">
+        <h3>Semana sin datos agregables</h3>
+        <p>No se pudieron construir agregados validos para <strong>${D.period}</strong>. Revisa los eventos y vuelve a generar el informe.</p>
+      </div>`;
+    return;
+  }
   const totalTools = weekOrDay ? weekOrDay.tool_calls : 0;
   const totalSessions = weekOrDay ? weekOrDay.sessions : 0;
   const totalDuration = weekOrDay ? weekOrDay.duration_sec : 0;
@@ -218,7 +223,7 @@
     </div>`).join('')}</section>`;
 
   // Actividad por día (solo si week)
-  if (D.mode === 'week' && D.days.length > 0) {
+  if (typeof Chart !== 'undefined' && D.mode === 'week' && D.days.length > 0) {
     html += `<div class="section-label">Actividad por día</div>
       <h2 class="serif section-title">Cómo se distribuyó tu tiempo esta semana.</h2>
       <p class="section-sub">Tool calls y duración activa por día (lunes a domingo).</p>
@@ -276,15 +281,21 @@
           const layerTag = c.layer === 'llm' ? '<span class="insight-layer-tag">LLM</span>'
             : c.layer === 'history' ? '<span class="insight-layer-tag">Historia</span>'
             : '';
-          return `<div class="insight state-${c.state} layer-${c.layer || 'catalog'}">
+          const safeState = esc(c.state || 'warn');
+          const safeLayer = esc(c.layer || 'catalog');
+          const safeLabel = esc(c.label || c.id);
+          const safeValueDisplay = esc(c.value_display || '');
+          const safeMessage = esc(c.message || '');
+          const safeTip = esc(c.tip || '');
+          return `<div class="insight state-${safeState} layer-${safeLayer}">
             <div class="insight-head">
               <div>
-                <div class="insight-label">${c.label || c.id} ${layerTag}</div>
+                <div class="insight-label">${safeLabel} ${layerTag}</div>
               </div>
-              ${c.value_display ? `<div class="insight-value">${c.value_display}</div>` : ''}
+              ${c.value_display ? `<div class="insight-value">${safeValueDisplay}</div>` : ''}
             </div>
-            <div class="insight-msg">${c.message || ''}</div>
-            ${c.tip ? `<div class="insight-tip">${c.tip}</div>` : ''}
+            <div class="insight-msg">${safeMessage}</div>
+            ${c.tip ? `<div class="insight-tip">${safeTip}</div>` : ''}
           </div>`;
         }).join('')}
       </div>`;
@@ -328,9 +339,9 @@
   root.innerHTML = html;
 
   // Chart: actividad diaria (sólo en modo week)
-  if (D.mode === 'week' && D.days.length > 0) {
+  if (typeof Chart !== 'undefined' && D.mode === 'week' && D.days.length > 0) {
     Chart.defaults.color = '#A0AAB8';
-    Chart.defaults.font.family = 'Outfit';
+    Chart.defaults.font.family = 'Segoe UI';
     const labels = D.days.map(d => d.date.slice(5));
     const calls = D.days.map(d => d.tool_calls);
     const dur = D.days.map(d => Math.round(d.duration_sec / 60));
