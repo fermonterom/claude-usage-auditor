@@ -68,10 +68,15 @@ suite('[e2e] pipeline completo', () => {
     for (let i = 0; i < 3; i++) emit('s2', '/proj/b', 'Edit', 100, null, true, env);
     emit('s2', '/proj/b', 'Bash', 100, null, false, env);
 
-    todayDate = new Date().toISOString().slice(0, 10);
-    const jsonl = path.join(tmp, '.nextgenai-productivity', 'events', `${todayDate}.jsonl`);
-    const lines = fs.readFileSync(jsonl, 'utf8').split('\n').filter(Boolean);
-    assertEq(lines.length, 20); // 10 pre + 10 post
+    const d = new Date();
+    todayDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayDate);
+    let lines = 0;
+    for (const f of fs.readdirSync(dayDir)) {
+      if (!f.endsWith('.jsonl')) continue;
+      lines += fs.readFileSync(path.join(dayDir, f), 'utf8').split(/\r?\n/).filter(Boolean).length;
+    }
+    assertEq(lines, 20); // 10 pre + 10 post
   });
 
   test('3. aggregate week produce metrics válidos', () => {

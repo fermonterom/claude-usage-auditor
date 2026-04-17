@@ -117,6 +117,8 @@ for (const f of files) {
       tests: [{ name: '<load>', status: 'failed', error: e.message }]
     });
     results.totals.failed++;
+  } finally {
+    try { delete require.cache[require.resolve(f)]; } catch {}
   }
 }
 
