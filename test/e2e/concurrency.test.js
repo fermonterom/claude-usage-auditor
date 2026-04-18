@@ -7,9 +7,8 @@ const TRACKER = path.join(__dirname, '..', '..', 'hooks', 'tracker.js');
 
 function mkTmp() { return fs.mkdtempSync(path.join(os.tmpdir(), 'ngai-concurrency-')); }
 
-function todayLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 suite('[e2e] concurrent tracker stress', () => {
@@ -57,7 +56,7 @@ async function runSession(sessionId) {
     });
     assertEq(r.status, 0, r.stderr);
 
-    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayLocal());
+    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayUtc());
     let lines = 0;
     for (const file of fs.readdirSync(dayDir)) {
       if (!file.endsWith('.jsonl')) continue;

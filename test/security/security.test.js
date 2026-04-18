@@ -23,13 +23,12 @@ function run(script, args, stdin, tmpHome) {
   });
 }
 
-function todayLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function readDayRaw(tmp, sid='sec1') {
-  const day = todayLocal();
+  const day = todayUtc();
   const f = path.join(tmp, '.nextgenai-productivity', 'events', day, `${sid}.jsonl`);
   return fs.existsSync(f) ? fs.readFileSync(f, 'utf8') : '';
 }

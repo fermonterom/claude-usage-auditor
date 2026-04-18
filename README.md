@@ -85,35 +85,41 @@ Verificado por suite de tests automatizados (ver `test/security/`):
 
 ```
 hooks/              # Se ejecutan por Claude Code
-  tracker.js          # PreToolUse / PostToolUse / Stop — registra metadata
+  tracker.js          # PreToolUse / PostToolUse / Stop — registra metadata (UTC)
   session-start.js    # SessionStart — detecta goals.yaml faltante
 lib/                # Lógica offline
-  install.js          # Configura ~/.claude/settings.json
+  config.js           # Fuente única de paths, VERSION (de package.json), DEBUG
+  install.js          # Configura ~/.claude/settings.json (backup previo + perms 0700)
   uninstall.js        # Quita hooks, --purge elimina datos
-  aggregate.js        # Sesiones → días → semanas ISO
-  insights.js         # Catálogo (capa A) + historia personal (capa B)
-  insights-catalog.json # 10 reglas con thresholds + mensajes
-  llm-insights.js     # Capa C opcional — Haiku
-  render.js           # Orquesta aggregate + insights → HTML
+  aggregate.js        # Sesiones → días → semanas ISO (streaming readline)
+  insights/           # Capa A catálogo + capa B historia + capa C LLM (split)
+    derived.js, rules.js, history.js, index.js
+  insights-catalog.json # 10 reglas con thresholds + rationale
+  llm-insights.js     # Capa C opcional — Haiku con cache semanal
+  render.js           # Orquesta aggregate + insights → HTML (sin subprocess)
   status.js           # Diagnóstico del estado del plugin
+  migrate.js          # Migración v0→v1 de formato de eventos
+  prune.js            # Retention policy — borra events de más de N días
+  export.js           # Export HTML portable para SSH/remote
+  utils/              # fs-utils, stdin, yaml (parser sin dependencias)
 commands/           # Los 5 slash commands
 templates/
   report.html         # Template autocontenido con brand tokens
-test/               # 65 tests (sin dependencias)
+test/               # 85 tests (sin dependencias)
   runner.js           # Descubre y ejecuta *.test.js
-  unit/               # aggregate, insights, tracker, install
+  unit/               # aggregate, insights, tracker, install, config, status, migrate, llm, render-xss
   security/           # privacy, path, yaml injection, hooks robustness
-  e2e/                # pipeline completo install → ... → uninstall
+  e2e/                # pipeline completo + concurrency stress
 ```
 
 ## Tests
 
 ```bash
-node test/runner.js     # ejecuta los 65 tests
+node test/runner.js     # ejecuta los 85 tests
 node test/report.js     # genera informe HTML de seguridad en test/security-report.html
 ```
 
-Cobertura actual: **65/65** pasando, 13 riesgos evaluados (3 critical, 4 high, 5 medium, 1 low), todos con mitigación aplicada o aceptados por diseño.
+Cobertura actual: **85/85** pasando, incluyendo regresión XSS, concurrencia e2e (3 sesiones × 20 eventos), migración v0→v1 y suite de privacy (ver `test/security/`).
 
 ## Compatibilidad
 
@@ -123,9 +129,10 @@ Cobertura actual: **65/65** pasando, 13 riesgos evaluados (3 critical, 4 high, 5
 
 ## Roadmap
 
-- `v0.2` (actual): tracker + agregación + insights 3 capas + goals por proyecto
-- `v0.3`: compartir goals en equipo, alertas proactivas, export a CSV/JSON
-- `v0.4`: comparación anónima cross-cohort (opt-in, agregados únicamente)
+- `v0.2`: tracker + agregación + insights 3 capas + goals por proyecto
+- `v0.4` (actual): audit hardening wave — XSS esc, SRI, backup settings, split insights, 85 tests, CI matrix (Node 18/20/22 + Windows + gitleaks)
+- `v0.5`: compartir goals en equipo, alertas proactivas, export CSV/JSON
+- `v0.6`: comparación anónima cross-cohort (opt-in, agregados únicamente)
 
 ## Licencia
 
@@ -136,7 +143,7 @@ MIT — ver [LICENSE](./LICENSE).
 Issues y PRs bienvenidos. Antes de abrir PR:
 
 ```bash
-node test/runner.js   # debe quedar 65/65 + los nuevos tests que añadas
+node test/runner.js   # debe quedar 85/85 + los nuevos tests que añadas
 ```
 
 Hallazgo de seguridad: por favor reporta en privado vía Issues con etiqueta `security` en lugar de PR público.

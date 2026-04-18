@@ -21,9 +21,8 @@ function ensureDataDir(tmp) {
   return dataDir;
 }
 
-function todayLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 suite('[unit] status', () => {
@@ -39,7 +38,7 @@ suite('[unit] status', () => {
   test('2) valid JSONL lines are counted correctly', () => {
     const tmp = mkTmp();
     ensureDataDir(tmp);
-    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayLocal());
+    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayUtc());
     fs.mkdirSync(dayDir, { recursive: true });
     fs.writeFileSync(path.join(dayDir, 's1.jsonl'), '{"a":1}\n{"a":2}\n{"a":3}\n');
     const r = run(tmp);
@@ -50,7 +49,7 @@ suite('[unit] status', () => {
   test('3) CRLF event files are handled', () => {
     const tmp = mkTmp();
     ensureDataDir(tmp);
-    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayLocal());
+    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayUtc());
     fs.mkdirSync(dayDir, { recursive: true });
     fs.writeFileSync(path.join(dayDir, 's1.jsonl'), '{"a":1}\r\n{"a":2}\r\n');
     const r = run(tmp);

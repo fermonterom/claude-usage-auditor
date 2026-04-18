@@ -8,6 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Full audit pass (Phases 01–07). Addresses every critical, high, and medium
 finding from the code review. 85 tests passing (up from 65).
 
+### Fixed (post-merge review)
+- Timezone mismatch: tracker persisted events under the user's local date, but aggregate listed directories with UTC dates. On UTC+N timezones, events between midnight-local and midnight-UTC were invisible to the report until the following day. Tracker now uses `new Date().toISOString().slice(0,10)` consistently with aggregate. Affected: `hooks/tracker.js`, `test/unit/tracker.test.js`, `test/unit/status.test.js`, `test/security/security.test.js`, `test/e2e/concurrency.test.js`.
+- Report footer copy clarified: `100% local por defecto · capa LLM opt-in` (the previous wording implied unconditional locality, which contradicted the optional `lib/llm-insights.js` HTTPS calls when `api-keys.yaml` is present).
+- README synced with v0.4.0 reality: architecture diagram reflects `lib/insights/` split + `lib/utils/` + new modules; tests count updated 65 → 85; roadmap moved forward.
+
 ### Security
 - Escape all user-controlled fields in insight cards with `esc()` to prevent XSS chained with prompt injection (FINDING-001)
 - Add SRI `integrity` hash to Chart.js CDN `<script>` tag to prevent supply-chain tampering (SEC-006)

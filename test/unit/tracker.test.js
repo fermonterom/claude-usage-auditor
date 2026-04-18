@@ -21,9 +21,8 @@ function makeTmpHome() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'ngai-test-tracker-'));
 }
 
-function todayLocal() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function readEventsDay(tmpHome, date) {
@@ -48,7 +47,7 @@ suite('[unit] tracker · modo pre-tool-use', () => {
       tool_input: { file_path: '/secret.txt' }
     }, tmp);
     assertEq(res.status, 0, 'exit 0');
-    const events = readEventsDay(tmp, todayLocal());
+    const events = readEventsDay(tmp, todayUtc());
     assertEq(events.length, 1);
     assertEq(events[0].type, 'tool_start');
     assertEq(events[0].tool, 'Read');
@@ -67,7 +66,7 @@ suite('[unit] tracker · modo pre-tool-use', () => {
       tool_name: 'Bash',
       tool_input: { command: `echo ${secret}` }
     }, tmp);
-    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayLocal());
+    const dayDir = path.join(tmp, '.nextgenai-productivity', 'events', todayUtc());
     const raw = fs.readFileSync(path.join(dayDir, 's1.jsonl'), 'utf8');
     assert(!raw.includes(secret), 'secreto NO debe aparecer en eventos');
     assert(!raw.includes('echo'), 'comando NO debe aparecer');
@@ -85,7 +84,7 @@ suite('[unit] tracker · modo post-tool-use', () => {
       tool_input: { file_path: 'x' },
       tool_response: { content: secret, is_error: false }
     }, tmp);
-    const raw = fs.readFileSync(path.join(tmp, '.nextgenai-productivity', 'events', todayLocal(), 's2.jsonl'), 'utf8');
+    const raw = fs.readFileSync(path.join(tmp, '.nextgenai-productivity', 'events', todayUtc(), 's2.jsonl'), 'utf8');
     assert(!raw.includes(secret), 'respuesta NO aparece');
   });
 
@@ -96,7 +95,7 @@ suite('[unit] tracker · modo post-tool-use', () => {
       tool_name: 'Bash',
       tool_response: { is_error: true }
     }, tmp);
-    const events = readEventsDay(tmp, todayLocal());
+    const events = readEventsDay(tmp, todayUtc());
     assertEq(events[0].ok, false);
   });
 });

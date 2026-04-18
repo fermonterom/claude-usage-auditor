@@ -22,12 +22,11 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function todayLocal() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+// UTC, no local: aggregate.js construye dateList con Date.UTC() + toISOString().slice(0,10).
+// Si el tracker usara fecha local, un evento a las 01:30 en UTC+2 quedaria en YYYY-MM-DD local
+// pero aggregate lo buscaria en YYYY-MM-DD UTC (dia anterior) y nunca lo encontraria.
+function todayUtc() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function writeError(stage, err) {
@@ -87,7 +86,7 @@ function rotateLegacyIfNeeded(date) {
 
 function appendEvent(event) {
   try {
-    const date = todayLocal();
+    const date = todayUtc();
     ensureDir(EVENTS_DIR, 0o700);
     rotateLegacyIfNeeded(date);
     const dayDir = path.join(EVENTS_DIR, date);
